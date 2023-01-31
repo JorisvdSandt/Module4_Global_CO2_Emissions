@@ -1,0 +1,130 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+def set_dataframe_options():
+    pd.set_option("display.max_columns", 4)
+    pd.set_option("display.max_rows", None)
+
+
+def import_table():
+
+    table = pd.read_html(
+        "https://en.wikipedia.org/wiki/List_of_countries_by_carbon_dioxide_emissions"
+    )[1]
+
+    # rename column names
+    table.columns = [
+        "Country",
+        "Fossil C02 em (mt) 1990",
+        "Fossil C02 em (mt) 2005",
+        "Fossil C02 em (mt) 2017",
+        "Fossil C02 em 2017 % world",
+        "Fossil CO2 em 2017 vs 1990 ch %",
+        "Fossil C02 em 2017 PlA (CO2/km2/yr)",
+        "Fossil C02 em 2017 PC CO2/cap/yr)",
+        "2018 CO2 em total inc. LUCF",
+        "2018 CO2 em total exc. LUCF",
+    ]
+
+    table = table.loc[3:]
+
+    return table
+
+
+def get_five_biggest_co2_producers(table):
+
+    # create table containing the five biggest CO2 producers (most recent year)
+    table = table.sort_values(by="Fossil C02 em (mt) 2017", ascending=False)
+    top_five = table.iloc[:5, :4]
+
+    return top_five
+
+
+def plot_five_biggest_co2_producers(top_five):
+
+    # create chart
+    fig, ax = plt.subplots()
+
+    years = ["1990", "2005", "2017"]
+
+    for index, row in top_five.iterrows():
+        plt.plot(years, row[1:], label=row[0])
+
+    plt.plot
+    plt.title("Top five CO2 producers")
+    plt.xlabel("years")
+    plt.ylabel("CO2 (Mt)")
+    plt.legend(loc="upper left")
+    plt.grid()
+
+    plt.show()
+
+    return years
+
+
+def get_relative_changers(table):
+
+    table["Relative Change 1990 c/t 1990"] = (
+        table["Fossil C02 em (mt) 1990"] / table["Fossil C02 em (mt) 1990"] * 100
+    )
+    table["Relative Change 2005 c/t 1990"] = (
+        table["Fossil C02 em (mt) 2005"] / table["Fossil C02 em (mt) 1990"] * 100
+    )
+    table["Relative Change 2017 c/t 1990"] = (
+        table["Fossil C02 em (mt) 2017"] / table["Fossil C02 em (mt) 1990"] * 100
+    )
+
+    # extra filter countries that had at least five Mt of CO2 emissions in 1990 // final assigment
+    table = table.loc[(table["Fossil C02 em (mt) 1990"] > 5)]
+
+
+    table_top_three_changers = table.sort_values(
+        ["Relative Change 2005 c/t 1990", "Relative Change 2017 c/t 1990"],
+        ascending=[False, False],
+    )
+    table_bottom_three_changers = table.sort_values(
+        ["Relative Change 2005 c/t 1990", "Relative Change 2017 c/t 1990"],
+        ascending=[True, True],
+    )
+
+    table_top_three_changers = table_top_three_changers.set_index("Country")
+    table_top_three_changers = table_top_three_changers.iloc[:3, -3:]
+
+    table_bottom_three_changers = table_bottom_three_changers.set_index("Country")
+    table_bottom_three_changers = table_bottom_three_changers.iloc[:3, -3:]
+
+    return table_top_three_changers, table_bottom_three_changers
+
+
+def plot_relative_changers(
+    table_top_three_changers, table_bottom_three_changers, years
+):
+
+    # create chart
+    fig, ax = plt.subplots()
+
+    for index, row in table_top_three_changers.iterrows():
+        plt.plot(years, row[0:], label=index[0:])
+
+    for index, row in table_bottom_three_changers.iterrows():
+        plt.plot(years, row[0:], label=index[0:])
+
+    plt.title("relative CO2 producers changers")
+    plt.xlabel("years")
+    plt.ylabel("CO2 (Mt) change to 1990 in (%)")
+    plt.legend(loc="upper left")
+    plt.grid()
+
+    plt.show()
+
+
+# set the order of execution here, if to many, create a main() function
+if __name__ == "__main__":
+
+    set_dataframe_options()
+    table = import_table()
+    top_five = get_five_biggest_co2_producers(table)
+    years = plot_five_biggest_co2_producers(top_five)
+    table_top_three_changers, table_bottom_three_changers = get_relative_changers(table)
+    plot_relative_changers(table_top_three_changers, table_bottom_three_changers, years)
