@@ -27,7 +27,9 @@ def import_table():
         "2018 CO2 em total exc. LUCF",
     ]
 
+    # filter out the first three entries and the European Union
     table = table.loc[3:]
+    table = table.loc[(table["Country"] != "European Union")]
 
     return table
 
@@ -58,6 +60,7 @@ def plot_five_biggest_co2_producers(top_five):
     plt.legend(loc="upper left")
     plt.grid()
 
+    # figure 1
     plt.show()
 
     return years
@@ -75,17 +78,11 @@ def get_relative_changers(table):
         table["Fossil C02 em (mt) 2017"] / table["Fossil C02 em (mt) 1990"] * 100
     )
 
-    # extra filter countries that had at least five Mt of CO2 emissions in 1990 // final assigment
-    table = table.loc[(table["Fossil C02 em (mt) 1990"] > 5)]
-
-
     table_top_three_changers = table.sort_values(
-        ["Relative Change 2005 c/t 1990", "Relative Change 2017 c/t 1990"],
-        ascending=[False, False],
+        by="Relative Change 2017 c/t 1990", ascending=False
     )
     table_bottom_three_changers = table.sort_values(
-        ["Relative Change 2005 c/t 1990", "Relative Change 2017 c/t 1990"],
-        ascending=[True, True],
+        by="Relative Change 2017 c/t 1990", ascending=True
     )
 
     table_top_three_changers = table_top_three_changers.set_index("Country")
@@ -128,3 +125,10 @@ if __name__ == "__main__":
     years = plot_five_biggest_co2_producers(top_five)
     table_top_three_changers, table_bottom_three_changers = get_relative_changers(table)
     plot_relative_changers(table_top_three_changers, table_bottom_three_changers, years)
+
+    # final graph, with condition of at least five Mt of CO2 emissions in 1990
+    table = import_table()
+    table = table.loc[(table["Fossil C02 em (mt) 1990"] > 5)]
+    table_top_three_changers, table_bottom_three_changers = get_relative_changers(table)
+    plot_relative_changers(table_top_three_changers, table_bottom_three_changers, years)
+
